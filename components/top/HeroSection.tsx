@@ -55,11 +55,6 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* スクロール誘導 */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-        <span className="text-kin/30 text-xs tracking-widest font-serif-jp">scroll</span>
-        <span className="text-kin/30 text-sm">↓</span>
-      </div>
     </section>
   )
 }
