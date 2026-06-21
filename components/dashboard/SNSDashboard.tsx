@@ -6,6 +6,21 @@ import Image from 'next/image'
 const POST_TYPES = ['共感系', '診断誘導系', '守護存在紹介系', '開運メッセージ系'] as const
 const SNS_OPTIONS = ['Threads', 'X', 'Pinterest'] as const
 
+const GUARDIANS_LIST = [
+  { id: 'ryujin',        name: '龍神' },
+  { id: 'houou',         name: '鳳凰' },
+  { id: 'kirin',         name: '麒麟' },
+  { id: 'inarikitsune',  name: '稲荷狐' },
+  { id: 'yatagarasu',    name: '八咫烏' },
+  { id: 'shirohebi',     name: '白蛇' },
+  { id: 'kyubi',         name: '九尾' },
+  { id: 'nekomata',      name: '猫又' },
+  { id: 'tengu',         name: '天狗' },
+  { id: 'yukionna',      name: '雪女' },
+  { id: 'zashikiwarashi',name: '座敷童子' },
+  { id: 'mamoriOni',     name: '護り鬼' },
+] as const
+
 const IMAGE_FILE_MAP: Record<string, string> = {
   inarikitsune: 'inari',
   zashikiwarashi: 'zashiki',
@@ -40,6 +55,7 @@ interface GenerateResult {
 
 export default function SNSDashboard() {
   const [theme, setTheme] = useState('')
+  const [selectedGuardian, setSelectedGuardian] = useState<string>('')
   const [postType, setPostType] = useState<string>('共感系')
   const [targetSNS, setTargetSNS] = useState<string>('Threads')
   const [loading, setLoading] = useState(false)
@@ -57,7 +73,7 @@ export default function SNSDashboard() {
       const res = await fetch('/api/generate-post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theme, postType, targetSNS }),
+        body: JSON.stringify({ theme, selectedGuardian, postType, targetSNS }),
       })
       if (!res.ok) throw new Error('生成に失敗しました')
       const data: GenerateResult = await res.json()
@@ -101,6 +117,31 @@ export default function SNSDashboard() {
               rows={3}
               className="w-full bg-fukai border border-kin/20 text-washi/80 text-sm font-serif-jp p-3 resize-none focus:outline-none focus:border-kin/50 placeholder:text-washi/20 leading-relaxed"
             />
+          </div>
+
+          {/* Guardian Select */}
+          <div className="space-y-2">
+            <label className="text-washi/40 text-xs tracking-[0.3em] font-serif-jp">
+              守護存在を指定
+            </label>
+            <div className="relative">
+              <select
+                value={selectedGuardian}
+                onChange={(e) => setSelectedGuardian(e.target.value)}
+                className="w-full bg-fukai border border-kin/20 text-sm font-serif-jp p-3 pr-8 focus:outline-none focus:border-kin/50 cursor-pointer appearance-none"
+                style={{ color: selectedGuardian ? 'rgb(var(--color-washi) / 0.8)' : 'rgb(var(--color-washi) / 0.25)' }}
+              >
+                <option value="" style={{ color: 'rgb(var(--color-washi) / 0.4)' }}>
+                  指定なし（テーマに合わせてAIが選定）
+                </option>
+                {GUARDIANS_LIST.map(({ id, name }) => (
+                  <option key={id} value={id} style={{ color: 'rgb(var(--color-washi))' }}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-kin/40 text-xs">▼</span>
+            </div>
           </div>
 
           {/* Post Type */}
