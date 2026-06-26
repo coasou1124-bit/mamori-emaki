@@ -123,16 +123,16 @@ export default function PaidPage() {
           <div className="flex flex-col items-center gap-3 mt-2 w-full max-w-xs mx-auto">
             <a
               href="/thanks"
-              className="block w-full border border-kin/60 bg-kin/8 hover:bg-kin/15 text-kin text-center text-sm font-serif-jp tracking-[0.35em] px-12 py-4 transition-colors duration-200"
+              className="block w-full border border-kin/70 bg-kin/10 hover:bg-kin/20 text-kin text-center text-sm font-serif-jp tracking-[0.35em] py-4 transition-colors duration-200"
             >
               PDF鑑定書を受け取る
             </a>
-            <Link
+            <a
               href="/report/preview"
-              className="block w-full border border-washi/20 text-washi/55 hover:border-washi/40 hover:text-washi/80 text-center text-xs font-serif-jp tracking-[0.25em] px-12 py-3 transition-colors duration-200"
+              className="block w-full border border-washi/50 text-washi/80 hover:border-washi/70 hover:text-washi text-center text-sm font-serif-jp tracking-[0.3em] py-4 transition-colors duration-200"
             >
               鑑定書サンプルを見る →
-            </Link>
+            </a>
           </div>
         </section>
 
