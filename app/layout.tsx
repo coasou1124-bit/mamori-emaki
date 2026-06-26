@@ -11,6 +11,7 @@ const notoSerifJP = Noto_Serif_JP({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: '守護存在診断 | 護り絵巻',
   description:
     '生まれた日に、守護は決まっていた。日本の神獣・神使・妖異・守護霊 12体から、あなたを護る存在を診断します。',

@@ -1,18 +1,53 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import GuardianReveal from '@/components/result/GuardianReveal'
+import SubGuardianSection from '@/components/result/SubGuardianSection'
 import TalentSection from '@/components/result/TalentSection'
 import MessageCard from '@/components/result/MessageCard'
 import ShareButtons from '@/components/result/ShareButtons'
 import PaidCTA from '@/components/result/PaidCTA'
 import { calculateLifePathNumber } from '@/lib/numerology'
-import { getGuardianByLifePath } from '@/lib/guardians'
+import { getGuardianByLifePath, getSubGuardianByMonth } from '@/lib/guardians'
 
 interface SearchParams {
   y?: string
   m?: string
   d?: string
   name?: string
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>
+}): Promise<Metadata> {
+  const params = await searchParams
+  const { y, m, d, name } = params
+
+  if (!y || !m || !d) {
+    return { title: '守護存在診断結果 | 護り絵巻' }
+  }
+
+  const displayName = name ? decodeURIComponent(name) : ''
+  const ogTitle = displayName
+    ? `${displayName}さんの守護存在 | 護り絵巻`
+    : '守護存在診断結果 | 護り絵巻'
+  const ogImageUrl = `/api/og?y=${y}&m=${m}&d=${d}${name ? `&name=${encodeURIComponent(displayName)}` : ''}`
+
+  return {
+    title: ogTitle,
+    description: '日本の霊的守護体系12体から、あなたを護る守護存在が決まりました。',
+    openGraph: {
+      title: ogTitle,
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: ogTitle }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: ogTitle,
+      images: [ogImageUrl],
+    },
+  }
 }
 
 export default async function ResultPage({
@@ -43,8 +78,9 @@ export default async function ResultPage({
 
   const lifePathNumber = calculateLifePathNumber(year, month, day)
   const guardian = getGuardianByLifePath(lifePathNumber)
+  const subGuardian = getSubGuardianByMonth(month)
 
-  if (!guardian) {
+  if (!guardian || !subGuardian) {
     redirect('/shindan')
   }
 
@@ -57,6 +93,11 @@ export default async function ResultPage({
           guardian={guardian}
           displayName={displayName}
           lifePathNumber={lifePathNumber}
+        />
+        <SubGuardianSection
+          subGuardian={subGuardian}
+          mainGuardian={guardian}
+          birthMonth={month}
         />
         <TalentSection guardian={guardian} />
         <MessageCard guardian={guardian} />

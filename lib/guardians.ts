@@ -374,4 +374,26 @@ export function getGuardianByLifePath(lifePathNumber: number): Guardian | null {
   return GUARDIANS[id] ?? null
 }
 
+// 誕生月 → 副守護存在IDのマッピング
+const BIRTH_MONTH_MAP: Record<number, string> = {
+  1:  'mamoriOni',       // 護り鬼
+  2:  'yukionna',        // 雪女
+  3:  'zashikiwarashi',  // 座敷童子
+  4:  'kirin',           // 麒麟
+  5:  'ryujin',          // 龍神
+  6:  'houou',           // 鳳凰
+  7:  'kyubi',           // 九尾の狐
+  8:  'nekomata',        // 猫又
+  9:  'inarikitsune',    // 稲荷狐
+  10: 'yatagarasu',      // 八咫烏
+  11: 'shirohebi',       // 白蛇
+  12: 'tengu',           // 天狗
+}
+
+export function getSubGuardianByMonth(month: number): Guardian | null {
+  const id = BIRTH_MONTH_MAP[month]
+  if (!id) return null
+  return GUARDIANS[id] ?? null
+}
+
 export const ALL_GUARDIANS = Object.values(GUARDIANS)
