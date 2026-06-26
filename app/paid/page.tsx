@@ -120,12 +120,20 @@ export default function PaidPage() {
             <p className="text-washi/25 text-xs font-serif-jp">デジタルPDF・購入後すぐに受け取れます</p>
           </div>
 
-          <a
-            href="/thanks"
-            className="inline-block mt-2 border border-kin/60 bg-kin/8 hover:bg-kin/15 text-kin text-sm font-serif-jp tracking-[0.35em] px-12 py-4 transition-colors duration-200"
-          >
-            PDF鑑定書を受け取る
-          </a>
+          <div className="flex flex-col items-center gap-3 mt-2 w-full max-w-xs mx-auto">
+            <a
+              href="/thanks"
+              className="block w-full border border-kin/60 bg-kin/8 hover:bg-kin/15 text-kin text-center text-sm font-serif-jp tracking-[0.35em] px-12 py-4 transition-colors duration-200"
+            >
+              PDF鑑定書を受け取る
+            </a>
+            <Link
+              href="/report/preview"
+              className="block w-full border border-washi/20 text-washi/55 hover:border-washi/40 hover:text-washi/80 text-center text-xs font-serif-jp tracking-[0.25em] px-12 py-3 transition-colors duration-200"
+            >
+              鑑定書サンプルを見る →
+            </Link>
+          </div>
         </section>
 
         <Divider />
@@ -187,6 +195,14 @@ export default function PaidPage() {
           <p className="text-washi/25 text-xs text-center font-serif-jp">
             ※ 全ページ守護存在の世界観に合わせた和風デザインでお届けします
           </p>
+          <div className="text-center">
+            <Link
+              href="/report/preview"
+              className="inline-block border border-washi/15 text-washi/40 text-xs font-serif-jp tracking-[0.3em] px-8 py-3 hover:border-washi/30 hover:text-washi/65 transition-colors"
+            >
+              鑑定書サンプルを見る →
+            </Link>
+          </div>
         </section>
 
         <Divider />
