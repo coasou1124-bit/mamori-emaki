@@ -1,57 +1,16 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { calculateLifePathNumber } from '@/lib/numerology'
+import { getGuardianByLifePath, getSubGuardianByMonth, GUARDIANS } from '@/lib/guardians'
+import { TIER_COLORS } from '@/lib/tierColors'
 
 export const metadata: Metadata = {
-  title: '鑑定書サンプル | 護り絵巻',
-  description: 'PDF鑑定書のサンプルプレビューです。',
+  title: '鑑定書プレビュー | 護り絵巻',
+  description: 'PDF鑑定書のプレビューです。',
   robots: { index: false, follow: false },
 }
 
-// ── サンプルデータ ─────────────────────────────────────────
-const S = {
-  userName: '山田 花子',
-  birthdate: '1990年11月15日',
-  issuedDate: '2026年6月',
-  main: {
-    name: '龍神',
-    reading: 'りゅうじん',
-    tier: '神獣',
-    color: '#d4a843',
-    title: '天地を統べる龍の王',
-    attrs: ['水', '天', '変容'],
-    personality:
-      '龍神に守護されたあなたは、広大な視野と底知れぬ適応力を持つ魂の持ち主です。変化を恐れず、むしろ変化の中心に立ち続けることで本来の力を発揮します。他者が見落とす流れを察知し、時代の転換点において自然とリーダーシップを発揮するでしょう。物事の本質を直感的に掴む力と、それを言語化する能力を兼ね備えており、複雑な状況においても冷静に全体像を把握できます。',
-    talent:
-      'あなたの才能は「変容を可能にする力」です。固定概念に縛られず、状況に応じて最適な形を見出す柔軟性は、創造・経営・芸術・教育など、あらゆる分野で輝きます。特に「新しいものと古いものをつなぐ」役割において、龍神のエネルギーは最大限に発揮されます。直感的に本質を掴み、それを分かりやすく伝える能力も際立っています。',
-    mission:
-      '固定された形に縛られず、流動する現実の中で最適な姿に変容し続けること。あなたの存在そのものが、周囲に「変化は可能だ」という証明になります。',
-    message:
-      '水は高きから低きへ流れ、どんな形の器にも従う。しかしその力は岩をも穿つ。あなたもまた、柔らかく、しかし確かに、時代を切り拓く力を持っている。今、あなたが感じている「変わりたい」という衝動は、私があなたに送る合図だ。変わることを恐れるな。変わり続けることが、あなたの本来の姿だ。',
-  },
-  sub: {
-    name: '白蛇',
-    reading: 'しろへび',
-    tier: '神使',
-    color: '#7ab8c5',
-    title: '弁財天の使い・縁と財を結ぶ者',
-    attrs: ['水', '縁', '財'],
-    birthMonth: '十一月',
-    description:
-      '十一月に生まれたあなたには、白蛇の神使としての守護が宿っています。白蛇は弁財天の御使いであり、縁・財・芸術の守護者です。あなたの日常の流れの中に、白蛇は静かに縁を運び込んでいます。白蛇に守護された人は、表には出さないが深い感受性と審美眼を持ち、良質な縁を引き寄せる不思議な力があります。',
-    mission:
-      '縁を大切に紡ぎ、流れに逆らわず乗ることで、自然と豊かさが満ちてくる。静けさの中に宿る力を信じること。焦らず、しかし確かに歩みを続けること。',
-    message:
-      '縁は、あなたが気づく前から始まっている。あなたの周りに集まる人たちは、偶然ではない。私が長い時間をかけて、あなたのもとへ運んできた縁の糸だ。その縁を、どうか大切にしてほしい。静かな水面は、最もよく空を映す。あなたもまた、静けさの中で最も美しい縁を引き寄せる。',
-  },
-  combo: {
-    title: '水龍と白蛇の二重守護',
-    subtitle: '変容と縁を司る水の守護者たち',
-    description:
-      '龍神と白蛇、どちらも「水」のエネルギーを宿す守護存在の組み合わせは、144通りの中でも特に縁の深い構成です。龍は天地を動かし大きな流れを作り、白蛇はその流れの中に人と縁と財を引き寄せます。あなたの人生は、この二つの水のエネルギーによって、静かに、しかし力強く動かされています。',
-    advice:
-      '「流れに乗る」ことが最大の開運キーワードです。無理に動こうとするより、自然な流れを感じ取り、その方向に進むことで両守護のエネルギーが最大化されます。水が最も低いところを選んで流れるように、あなたも「抵抗の少ない方向」を選ぶことで、大きな力が発動します。',
-  },
-}
+const KANJI_MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
 
 // ── 共通パーツ ─────────────────────────────────────────────
 const gradientGold = 'linear-gradient(90deg,transparent 0%,#c9a047 25%,#c9a047 75%,transparent 100%)'
@@ -122,7 +81,58 @@ function TierBadge({ tier, color }: { tier: string; color: string }) {
 }
 
 // ── ページコンポーネント ────────────────────────────────────
-export default function ReportPreviewPage() {
+export default async function ReportPreviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ y?: string; m?: string; d?: string }>
+}) {
+  const params = await searchParams
+  const y = Math.max(1900, Math.min(2100, parseInt(params.y ?? '1990', 10) || 1990))
+  const m = Math.max(1, Math.min(12, parseInt(params.m ?? '11', 10) || 11))
+  const d = Math.max(1, Math.min(31, parseInt(params.d ?? '15', 10) || 15))
+
+  const lifePathNum = calculateLifePathNumber(y, m, d)
+  const mainG = getGuardianByLifePath(lifePathNum) ?? GUARDIANS.ryujin
+  const subG = getSubGuardianByMonth(m) ?? GUARDIANS.shirohebi
+
+  const mainColor = TIER_COLORS[mainG.tier].hex
+  const subColor = TIER_COLORS[subG.tier].hex
+
+  const D = {
+    birthdate: `${y}年${m}月${d}日`,
+    issuedDate: '2026年6月',
+    main: {
+      name: mainG.name,
+      reading: mainG.nameReading,
+      tier: mainG.tier,
+      color: mainColor,
+      title: mainG.title,
+      attrs: mainG.attributes,
+      personality: mainG.personality,
+      talent: mainG.talents.join('。'),
+      mission: mainG.mission,
+      message: mainG.message,
+    },
+    sub: {
+      name: subG.name,
+      reading: subG.nameReading,
+      tier: subG.tier,
+      color: subColor,
+      title: subG.title,
+      attrs: subG.attributes,
+      birthMonth: KANJI_MONTHS[m - 1] ?? '一月',
+      description: subG.personality,
+      mission: subG.mission,
+      message: subG.message,
+    },
+    combo: {
+      title: `${mainG.name}と${subG.name}の守護`,
+      subtitle: `${mainG.attributes[0]}と${subG.attributes[0]}のエネルギーが重なる守護構成`,
+      description: `${mainG.name}と${subG.name}の組み合わせは、144通りの守護構成の中に固有の意味を持ちます。主守護のエネルギーが人生の大きな流れを定め、副守護がその流れの中で縁・財・日常の質を高めていきます。あなたの人生はこの二体の守護のエネルギーによって、静かに、しかし確実に支えられています。`,
+      advice: `この守護構成が示す最大の開運キーワードは「${mainG.attributes[0]}と${subG.attributes[0]}の調和」です。主守護${mainG.name}のエネルギーを日常に意識的に取り入れながら、副守護${subG.name}の助力を活かす生き方が、あなたの開運への道です。`,
+    },
+  }
+
   return (
     <div className="min-h-screen bg-[#080b10] py-10 px-4">
 
@@ -168,22 +178,21 @@ export default function ReportPreviewPage() {
             {/* メイン */}
             <div className="text-center space-y-7">
               <div className="space-y-2">
-                <p className="text-washi/25 text-sm font-serif-jp tracking-[0.35em]">{S.main.reading}</p>
+                <p className="text-washi/25 text-sm font-serif-jp tracking-[0.35em]">{D.main.reading}</p>
                 <h1 className="shimmer-text font-bold font-serif-jp leading-none" style={{ fontSize: '100px' }}>
-                  {S.main.name}
+                  {D.main.name}
                 </h1>
-                <p className="text-sm font-serif-jp tracking-widest" style={{ color: S.main.color }}>
-                  ── {S.main.title} ──
+                <p className="text-sm font-serif-jp tracking-widest" style={{ color: D.main.color }}>
+                  ── {D.main.title} ──
                 </p>
               </div>
               <div className="flex items-center justify-center gap-6">
                 <div className="h-px w-20 bg-kin/20" />
-                <TierBadge tier={S.main.tier} color={S.main.color} />
+                <TierBadge tier={D.main.tier} color={D.main.color} />
                 <div className="h-px w-20 bg-kin/20" />
               </div>
               <div className="space-y-1">
-                <p className="text-washi/65 text-xl font-bold font-serif-jp">{S.userName}</p>
-                <p className="text-washi/30 text-sm font-serif-jp">{S.birthdate}</p>
+                <p className="text-washi/30 text-sm font-serif-jp">{D.birthdate}</p>
               </div>
             </div>
 
@@ -192,11 +201,11 @@ export default function ReportPreviewPage() {
               <div className="flex items-center justify-center gap-3">
                 <div className="h-px w-10 bg-kin/15" />
                 <p className="text-washi/20 text-[10px] tracking-[0.3em] font-serif-jp">
-                  副守護存在　{S.sub.name}（{S.sub.tier}）
+                  副守護存在　{D.sub.name}（{D.sub.tier}）
                 </p>
                 <div className="h-px w-10 bg-kin/15" />
               </div>
-              <p className="text-washi/15 text-[10px] font-serif-jp tracking-wider">{S.issuedDate} 発行</p>
+              <p className="text-washi/15 text-[10px] font-serif-jp tracking-wider">{D.issuedDate} 発行</p>
             </div>
           </div>
           <GoldLine />
@@ -236,20 +245,20 @@ export default function ReportPreviewPage() {
           <div className="space-y-8">
             <div className="text-center space-y-4">
               <p className="text-washi/25 text-xs tracking-[0.5em] font-serif-jp">主 守 護 存 在</p>
-              <TierBadge tier={S.main.tier} color={S.main.color} />
+              <TierBadge tier={D.main.tier} color={D.main.color} />
               <div className="space-y-1">
-                <p className="text-washi/25 text-sm font-serif-jp tracking-[0.3em]">{S.main.reading}</p>
+                <p className="text-washi/25 text-sm font-serif-jp tracking-[0.3em]">{D.main.reading}</p>
                 <h2 className="shimmer-text font-bold font-serif-jp leading-none" style={{ fontSize: '80px' }}>
-                  {S.main.name}
+                  {D.main.name}
                 </h2>
               </div>
               <div className="flex items-center justify-center gap-4">
-                <div className="h-px w-20" style={{ background: `${S.main.color}40` }} />
-                <p className="text-sm font-serif-jp" style={{ color: S.main.color }}>{S.main.title}</p>
-                <div className="h-px w-20" style={{ background: `${S.main.color}40` }} />
+                <div className="h-px w-20" style={{ background: `${D.main.color}40` }} />
+                <p className="text-sm font-serif-jp" style={{ color: D.main.color }}>{D.main.title}</p>
+                <div className="h-px w-20" style={{ background: `${D.main.color}40` }} />
               </div>
               <div className="flex items-center justify-center gap-3 flex-wrap">
-                {S.main.attrs.map((a) => (
+                {D.main.attrs.map((a) => (
                   <span key={a} className="text-washi/40 text-xs font-serif-jp border border-washi/10 px-4 py-1">
                     {a}
                   </span>
@@ -258,12 +267,12 @@ export default function ReportPreviewPage() {
             </div>
             <div className="border-t border-kin/10 pt-7 space-y-5">
               <div>
-                <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${S.main.color}80` }}>守護の姿</p>
-                <Body>{S.main.personality}</Body>
+                <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${D.main.color}80` }}>守護の姿</p>
+                <Body>{D.main.personality}</Body>
               </div>
-              <div className="bg-kard/60 border p-6" style={{ borderColor: `${S.main.color}18` }}>
-                <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${S.main.color}70` }}>魂の使命</p>
-                <Body className="text-washi/65">{S.main.mission}</Body>
+              <div className="bg-kard/60 border p-6" style={{ borderColor: `${D.main.color}18` }}>
+                <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${D.main.color}70` }}>魂の使命</p>
+                <Body className="text-washi/65">{D.main.mission}</Body>
               </div>
             </div>
           </div>
@@ -274,21 +283,21 @@ export default function ReportPreviewPage() {
           <div className="space-y-8">
             <div className="text-center space-y-4">
               <p className="text-washi/25 text-xs tracking-[0.5em] font-serif-jp">副 守 護 存 在</p>
-              <p className="text-washi/20 text-xs font-serif-jp">{S.sub.birthMonth}生まれに宿る守護</p>
-              <TierBadge tier={S.sub.tier} color={S.sub.color} />
+              <p className="text-washi/20 text-xs font-serif-jp">{D.sub.birthMonth}生まれに宿る守護</p>
+              <TierBadge tier={D.sub.tier} color={D.sub.color} />
               <div className="space-y-1">
-                <p className="text-washi/25 text-sm font-serif-jp tracking-[0.3em]">{S.sub.reading}</p>
+                <p className="text-washi/25 text-sm font-serif-jp tracking-[0.3em]">{D.sub.reading}</p>
                 <h2 className="text-washi/85 font-bold font-serif-jp leading-none" style={{ fontSize: '80px' }}>
-                  {S.sub.name}
+                  {D.sub.name}
                 </h2>
               </div>
               <div className="flex items-center justify-center gap-4">
-                <div className="h-px w-20" style={{ background: `${S.sub.color}40` }} />
-                <p className="text-sm font-serif-jp" style={{ color: S.sub.color }}>{S.sub.title}</p>
-                <div className="h-px w-20" style={{ background: `${S.sub.color}40` }} />
+                <div className="h-px w-20" style={{ background: `${D.sub.color}40` }} />
+                <p className="text-sm font-serif-jp" style={{ color: D.sub.color }}>{D.sub.title}</p>
+                <div className="h-px w-20" style={{ background: `${D.sub.color}40` }} />
               </div>
               <div className="flex items-center justify-center gap-3 flex-wrap">
-                {S.sub.attrs.map((a) => (
+                {D.sub.attrs.map((a) => (
                   <span key={a} className="text-washi/40 text-xs font-serif-jp border border-washi/10 px-4 py-1">
                     {a}
                   </span>
@@ -297,12 +306,12 @@ export default function ReportPreviewPage() {
             </div>
             <div className="border-t border-kin/10 pt-7 space-y-5">
               <div>
-                <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${S.sub.color}80` }}>守護の姿</p>
-                <Body>{S.sub.description}</Body>
+                <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${D.sub.color}80` }}>守護の姿</p>
+                <Body>{D.sub.description}</Body>
               </div>
-              <div className="bg-kard/60 border p-6" style={{ borderColor: `${S.sub.color}18` }}>
-                <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${S.sub.color}70` }}>副守護の使命</p>
-                <Body className="text-washi/65">{S.sub.mission}</Body>
+              <div className="bg-kard/60 border p-6" style={{ borderColor: `${D.sub.color}18` }}>
+                <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${D.sub.color}70` }}>副守護の使命</p>
+                <Body className="text-washi/65">{D.sub.mission}</Body>
               </div>
             </div>
           </div>
@@ -314,30 +323,30 @@ export default function ReportPreviewPage() {
           <div className="space-y-8">
             <div className="text-center space-y-3">
               <p className="text-kin/45 text-xs tracking-[0.4em] font-serif-jp">144通りの中のあなたの守護構成</p>
-              <h3 className="text-washi/85 text-2xl font-bold font-serif-jp">{S.combo.title}</h3>
-              <p className="text-washi/35 text-sm font-serif-jp">{S.combo.subtitle}</p>
+              <h3 className="text-washi/85 text-2xl font-bold font-serif-jp">{D.combo.title}</h3>
+              <p className="text-washi/35 text-sm font-serif-jp">{D.combo.subtitle}</p>
             </div>
             <div className="flex items-center justify-center gap-8">
               <div className="text-center space-y-2">
-                <span className="text-[10px] tracking-widest px-3 py-1 border font-serif-jp" style={{ color: S.main.color, borderColor: `${S.main.color}40` }}>
+                <span className="text-[10px] tracking-widest px-3 py-1 border font-serif-jp" style={{ color: D.main.color, borderColor: `${D.main.color}40` }}>
                   主守護
                 </span>
-                <p className="text-washi/75 text-2xl font-bold font-serif-jp">{S.main.name}</p>
+                <p className="text-washi/75 text-2xl font-bold font-serif-jp">{D.main.name}</p>
               </div>
               <p className="text-kin/30 text-3xl font-bold">×</p>
               <div className="text-center space-y-2">
-                <span className="text-[10px] tracking-widest px-3 py-1 border font-serif-jp" style={{ color: S.sub.color, borderColor: `${S.sub.color}40` }}>
+                <span className="text-[10px] tracking-widests px-3 py-1 border font-serif-jp" style={{ color: D.sub.color, borderColor: `${D.sub.color}40` }}>
                   副守護
                 </span>
-                <p className="text-washi/75 text-2xl font-bold font-serif-jp">{S.sub.name}</p>
+                <p className="text-washi/75 text-2xl font-bold font-serif-jp">{D.sub.name}</p>
               </div>
             </div>
             <div className="border border-kin/20 bg-kin/5 p-7">
-              <Body>{S.combo.description}</Body>
+              <Body>{D.combo.description}</Body>
             </div>
             <div className="space-y-3">
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp">この組み合わせの開運の鍵</p>
-              <Body>{S.combo.advice}</Body>
+              <Body>{D.combo.advice}</Body>
             </div>
           </div>
         </Page>
@@ -348,16 +357,16 @@ export default function ReportPreviewPage() {
           <div className="space-y-7">
             <div>
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp mb-4">本質の性格</p>
-              <Body>{S.main.personality}</Body>
+              <Body>{D.main.personality}</Body>
             </div>
             <div className="border-t border-kin/10 pt-6">
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp mb-4">開花する才能</p>
-              <Body>{S.main.talent}</Body>
+              <Body>{D.main.talent}</Body>
             </div>
             <div className="bg-kard/50 border border-kin/10 p-6 space-y-3">
-              <p className="text-washi/25 text-xs tracking-widest font-serif-jp">白蛇の副守護が加わることで</p>
+              <p className="text-washi/25 text-xs tracking-widest font-serif-jp">{D.sub.name}の副守護が加わることで</p>
               <Body className="text-washi/55">
-                龍神の変容する力に、白蛇の縁を引き寄せる力が加わることで、あなたの才能はさらに人とのつながりの中で輝きます。一人で考えるよりも、誰かとの対話の中で最良のアイデアが生まれる傾向があります。良質な縁を大切にすることが、あなたの才能を最大限に活かす鍵です。
+                {D.main.name}の力に、{D.sub.name}の{D.sub.attrs[0]}のエネルギーが加わることで、あなたの才能はさらに人とのつながりの中で輝きます。一人で考えるよりも、誰かとの対話の中で最良のアイデアが生まれる傾向があります。良質な縁を大切にすることが、あなたの才能を最大限に活かす鍵です。
               </Body>
             </div>
           </div>
@@ -368,18 +377,18 @@ export default function ReportPreviewPage() {
           <SectionTitle>恋愛傾向</SectionTitle>
           <div className="space-y-7">
             <Body>
-              龍神に守護されたあなたの恋愛は「変化と深さ」がキーワードです。表面的なつながりよりも、魂の深いところで共鳴できる相手を無意識に求めています。恋愛においても変化を恐れないため、新しい段階への移行は得意ですが、逆に現状維持を強く求めるパートナーとは長期的な摩擦が生じる場合があります。
+              {D.main.name}に守護されたあなたの恋愛は「{D.main.attrs[0]}と{D.main.attrs[1]}」がキーワードです。表面的なつながりよりも、魂の深いところで共鳴できる相手を無意識に求めています。恋愛においても変化を恐れないため、新しい段階への移行は得意ですが、逆に現状維持を強く求めるパートナーとは長期的な摩擦が生じる場合があります。
             </Body>
             <Body>
-              白蛇の副守護が加わることで、縁の引き寄せ力が高まります。気づけば自然と出会いが増える時期と、まったく縁が来ない時期のメリハリがはっきりしているのも特徴です。縁が来ている時期は積極的に、来ていない時期は内省の時間として過ごすのが白蛇守護のリズムに合います。
+              {D.sub.name}の副守護が加わることで、縁の引き寄せ力が高まります。気づけば自然と出会いが増える時期と、まったく縁が来ない時期のメリハリがはっきりしているのも特徴です。縁が来ている時期は積極的に、来ていない時期は内省の時間として過ごすのが守護のリズムに合います。
             </Body>
             <div className="border-t border-kin/10 pt-6 grid grid-cols-2 gap-6">
               <div className="space-y-3">
                 <p className="text-kin/40 text-xs tracking-widest font-serif-jp">相性の良い守護存在</p>
                 <ul className="space-y-2">
-                  {['鳳凰（変化を共に楽しめる）', '麒麟（深い知性で共鳴）', '稲荷狐（縁の流れが合う）'].map((t) => (
-                    <li key={t} className="text-washi/55 text-xs font-serif-jp flex gap-2 items-start">
-                      <Dot color={S.main.color} />{t}
+                  {mainG.lifeThemes.map((t) => (
+                    <li key={t.label} className="text-washi/55 text-xs font-serif-jp flex gap-2 items-start">
+                      <Dot color={D.main.color} />{t.label}（{t.rank}）
                     </li>
                   ))}
                 </ul>
@@ -387,7 +396,7 @@ export default function ReportPreviewPage() {
               <div className="space-y-3">
                 <p className="text-washi/30 text-xs tracking-widest font-serif-jp">注意が必要な傾向</p>
                 <ul className="space-y-2">
-                  {['自由を制限されることへの抵抗', '変化が多いため安定を誤解される', '深すぎる関係への恐れ'].map((t) => (
+                  {mainG.talents.map((t) => (
                     <li key={t} className="text-washi/40 text-xs font-serif-jp flex gap-2 items-start">
                       <Dot color="#ffffff33" />{t}
                     </li>
@@ -403,16 +412,16 @@ export default function ReportPreviewPage() {
           <SectionTitle>仕事運</SectionTitle>
           <div className="space-y-7">
             <Body>
-              龍神の守護を受けたあなたの仕事運は「変化の時代に強い」という特徴があります。安定した組織の中で守備範囲を守るよりも、新しいプロジェクトの立ち上げや、未開拓の領域に挑戦するときにエネルギーが最大化します。
+              {D.main.name}の守護を受けたあなたの仕事運は「{D.main.attrs[0]}の力を活かすとき」に最も輝きます。安定した組織の中で守備範囲を守るよりも、新しいプロジェクトの立ち上げや、未開拓の領域に挑戦するときにエネルギーが最大化します。
             </Body>
-            <div className="border-l-2 pl-5 py-2 space-y-2" style={{ borderColor: `${S.main.color}50` }}>
-              <p className="text-xs tracking-widest font-serif-jp" style={{ color: `${S.main.color}80` }}>最も輝く仕事環境</p>
+            <div className="border-l-2 pl-5 py-2 space-y-2" style={{ borderColor: `${D.main.color}50` }}>
+              <p className="text-xs tracking-widest font-serif-jp" style={{ color: `${D.main.color}80` }}>最も輝く仕事環境</p>
               <Body className="text-washi/55">
-                変化が多く、正解のない問いに向き合える仕事。クリエイティブ・コンサルティング・教育・起業・研究など、「流れを作る」側に立てる役割があなたに合っています。
+                {D.main.mission}
               </Body>
             </div>
             <Body>
-              白蛇の副守護が仕事面でもたらすのは「縁による発展」です。人脈や紹介を通じて仕事が広がることが多く、良質な縁を丁寧に育てることが長期的な成功につながります。特に女性の上司や先輩との縁を大切にすると、白蛇のエネルギーが活性化します。
+              {D.sub.name}の副守護が仕事面でもたらすのは「{D.sub.attrs[0]}による発展」です。人脈や紹介を通じて仕事が広がることが多く、良質な縁を丁寧に育てることが長期的な成功につながります。
             </Body>
             <div className="bg-kard/50 border border-kin/10 p-6">
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp mb-3">2026年の仕事のポイント</p>
@@ -428,18 +437,18 @@ export default function ReportPreviewPage() {
           <SectionTitle>金運</SectionTitle>
           <div className="space-y-7">
             <Body>
-              龍神の守護と白蛇の守護が重なるこの組み合わせは、金運において特に「縁を通じた豊かさ」が強調されます。ひとりで稼ぐことよりも、誰かとの協力・パートナーシップ・紹介を通じた収入の流れが自然に広がる傾向があります。
+              {D.main.name}の守護と{D.sub.name}の守護が重なるこの組み合わせは、金運において特に「縁を通じた豊かさ」が強調されます。ひとりで稼ぐことよりも、誰かとの協力・パートナーシップ・紹介を通じた収入の流れが自然に広がる傾向があります。
             </Body>
             <Body>
-              白蛇は弁財天の使いであり、財・縁・芸術の守護者です。この守護が宿るあなたは金銭に対する直感が鋭く、「今はこの流れに乗るべき」という感覚が金運のシグナルになることがあります。その直感を信頼することが、白蛇守護を活かす鍵です。
+              {D.sub.name}の守護はあなたに{D.sub.attrs[0]}と{D.sub.attrs[1]}の感覚をもたらします。金銭に対する直感が鋭く、「今はこの流れに乗るべき」という感覚が金運のシグナルになることがあります。その直感を信頼することが、守護を活かす鍵です。
             </Body>
             <div className="border-t border-kin/10 pt-6 grid grid-cols-2 gap-6">
               <div className="space-y-3">
                 <p className="text-kin/40 text-xs tracking-widest font-serif-jp">金運を高める行動</p>
                 <ul className="space-y-2">
-                  {['水辺・弁財天を祀る神社への参拝', '白・金・青緑のカラーを身につける', '財布を定期的に整理する', '大切な人への感謝を行動で示す'].map((t) => (
+                  {['縁を大切にする場所を訪れる', `${D.main.attrs[0]}のエネルギーを意識する`, '財布を定期的に整理する', '大切な人への感謝を行動で示す'].map((t) => (
                     <li key={t} className="text-washi/55 text-xs font-serif-jp flex gap-2 items-start">
-                      <Dot color={S.main.color} />{t}
+                      <Dot color={D.main.color} />{t}
                     </li>
                   ))}
                 </ul>
@@ -463,14 +472,14 @@ export default function ReportPreviewPage() {
           <SectionTitle>開運アドバイス</SectionTitle>
           <div className="space-y-8">
             <Body>
-              龍神と白蛇の二重守護を持つあなたへの最大の開運アドバイスは「流れに乗ること」です。水のエネルギーを持つ2体の守護存在は、あなたが自然な流れを選ぶとき、最もよく働きます。
+              {D.main.name}と{D.sub.name}の二重守護を持つあなたへの最大の開運アドバイスは「{D.main.attrs[0]}と{D.sub.attrs[0]}の流れに乗ること」です。この2体の守護存在は、あなたが自然な流れを選ぶとき、最もよく働きます。
             </Body>
             <div className="space-y-5">
               {[
-                { title: '場の選択',  body: '水が関係する場所（川・海・湖・弁天池）を定期的に訪れると守護エネルギーが補充されます。近くの弁財天を祀る神社を見つけておくと、節目節目に参拝できます。' },
-                { title: '色の活用',  body: '龍神の金・白、白蛇の青緑・白を日常に取り入れましょう。アクセサリー・財布・手帳の色を意識するだけで、守護の感応が高まります。' },
-                { title: '時間の感覚', body: '直感が来たら48時間以内に動くことを習慣にしてください。龍神のエネルギーは「タイミング」を重視します。後回しにすると流れが変わってしまうことがあります。' },
-                { title: '縁を育てる', body: '白蛇守護は縁の積み重ねで強化されます。大切な人への連絡・感謝・贈り物などの小さな行動が、長期的な金運と対人運を底上げします。' },
+                { title: '場の選択',  body: `${D.main.name}のエネルギーが宿る場所を定期的に訪れると守護エネルギーが補充されます。節目節目に守護存在と縁のある場所を訪れることで、エネルギーの流れを整えましょう。` },
+                { title: '色の活用',  body: `${D.main.name}の色「${D.main.attrs[0]}」、${D.sub.name}の色「${D.sub.attrs[0]}」を日常に取り入れましょう。アクセサリー・財布・手帳の色を意識するだけで、守護の感応が高まります。` },
+                { title: '時間の感覚', body: '直感が来たら48時間以内に動くことを習慣にしてください。守護のエネルギーは「タイミング」を重視します。後回しにすると流れが変わってしまうことがあります。' },
+                { title: '縁を育てる', body: `${D.sub.name}守護は縁の積み重ねで強化されます。大切な人への連絡・感謝・贈り物などの小さな行動が、長期的な金運と対人運を底上げします。` },
               ].map(({ title, body }) => (
                 <div key={title} className="flex gap-5 items-start">
                   <p className="text-kin/50 text-xs font-serif-jp tracking-widest shrink-0 w-16 text-right mt-1">{title}</p>
@@ -489,15 +498,15 @@ export default function ReportPreviewPage() {
             <div className="border border-kin/20 bg-kin/5 p-6 space-y-2">
               <p className="text-kin/60 text-xs tracking-widest font-serif-jp">2026年 総括</p>
               <Body className="text-washi/65">
-                2026年はあなたにとって「縁の年」です。龍神のエネルギーが外向きに大きく広がり、白蛇が縁の糸を次々と紡いでいく年。自分から動くよりも、呼ばれる場所・紹介される人・偶然の再会を大切にしてください。
+                2026年はあなたにとって「転機の年」です。{D.main.name}のエネルギーが外向きに大きく広がり、{D.sub.name}が縁の糸を次々と紡いでいく年。自分から動くよりも、呼ばれる場所・紹介される人・偶然の再会を大切にしてください。
               </Body>
             </div>
             <div className="space-y-4">
               {[
-                { period: '1〜3月',  note: '内省と準備の時期。焦らず、来る波に備える。龍神が内に力を蓄えています。' },
+                { period: '1〜3月',  note: '内省と準備の時期。焦らず、来る波に備える。守護が内に力を蓄えています。' },
                 { period: '4〜6月',  note: '縁が動き始める。出会いと紹介を大切に。新しいプロジェクトの芽が出る。' },
-                { period: '7〜9月',  note: '最大の活動期。龍神のエネルギーがピーク。大きな決断・行動に適した時期。' },
-                { period: '10〜12月', note: '結実と感謝の時期。今年育てた縁が形になる。白蛇の守護が財と縁を引き寄せる。' },
+                { period: '7〜9月',  note: `最大の活動期。${D.main.name}のエネルギーがピーク。大きな決断・行動に適した時期。` },
+                { period: '10〜12月', note: `結実と感謝の時期。今年育てた縁が形になる。${D.sub.name}の守護が財と縁を引き寄せる。` },
               ].map(({ period, note }) => (
                 <div key={period} className="flex gap-5 items-start">
                   <p className="text-kin/50 text-xs font-serif-jp shrink-0 w-16 text-right mt-1">{period}</p>
@@ -522,24 +531,24 @@ export default function ReportPreviewPage() {
             <div className="space-y-5">
               <span
                 className="inline-block text-[10px] tracking-widest px-3 py-1 border font-serif-jp"
-                style={{ color: S.main.color, borderColor: `${S.main.color}45` }}
+                style={{ color: D.main.color, borderColor: `${D.main.color}45` }}
               >
-                主守護 · 龍神より
+                主守護 · {D.main.name}より
               </span>
-              <div className="border-l-2 pl-6 py-2 space-y-4" style={{ borderColor: `${S.main.color}45` }}>
-                <Body className="text-washi/70">{S.main.message}</Body>
+              <div className="border-l-2 pl-6 py-2 space-y-4" style={{ borderColor: `${D.main.color}45` }}>
+                <Body className="text-washi/70">{D.main.message}</Body>
               </div>
             </div>
             {/* 副守護 */}
             <div className="space-y-5 border-t border-kin/10 pt-7">
               <span
                 className="inline-block text-[10px] tracking-widest px-3 py-1 border font-serif-jp"
-                style={{ color: S.sub.color, borderColor: `${S.sub.color}45` }}
+                style={{ color: D.sub.color, borderColor: `${D.sub.color}45` }}
               >
-                副守護 · 白蛇より
+                副守護 · {D.sub.name}より
               </span>
-              <div className="border-l-2 pl-6 py-2 space-y-4" style={{ borderColor: `${S.sub.color}45` }}>
-                <Body className="text-washi/65">{S.sub.message}</Body>
+              <div className="border-l-2 pl-6 py-2 space-y-4" style={{ borderColor: `${D.sub.color}45` }}>
+                <Body className="text-washi/65">{D.sub.message}</Body>
               </div>
             </div>
           </div>
@@ -560,12 +569,12 @@ export default function ReportPreviewPage() {
             <p className="text-washi/20 text-[10px] tracking-[0.5em] font-serif-jp">お 守 り ペ ー ジ</p>
 
             <div className="space-y-3">
-              <p className="text-washi/20 text-xs tracking-widest font-serif-jp">{S.main.reading}</p>
+              <p className="text-washi/20 text-xs tracking-widest font-serif-jp">{D.main.reading}</p>
               <p className="shimmer-text font-bold font-serif-jp leading-none" style={{ fontSize: '110px' }}>
-                {S.main.name}
+                {D.main.name}
               </p>
-              <p className="font-serif-jp tracking-widest text-sm" style={{ color: S.main.color }}>
-                {S.main.title}
+              <p className="font-serif-jp tracking-widest text-sm" style={{ color: D.main.color }}>
+                {D.main.title}
               </p>
             </div>
 
@@ -573,7 +582,7 @@ export default function ReportPreviewPage() {
               <div className="h-px w-20 bg-kin/20" />
               <div className="text-center space-y-1">
                 <p className="text-washi/25 text-xs font-serif-jp tracking-widest">× 副守護</p>
-                <p className="text-washi/60 text-xl font-bold font-serif-jp">{S.sub.name}</p>
+                <p className="text-washi/60 text-xl font-bold font-serif-jp">{D.sub.name}</p>
               </div>
               <div className="h-px w-20 bg-kin/20" />
             </div>
@@ -581,16 +590,13 @@ export default function ReportPreviewPage() {
             <div className="border border-kin/20 px-10 py-7 max-w-sm space-y-4">
               <p className="text-kin/45 text-xs tracking-widest font-serif-jp">守護の言葉</p>
               <Body className="text-washi/50">
-                変わることを恐れるな。<br />
-                縁を大切にせよ。<br />
+                {D.main.message.split('。')[0]}。<br />
+                {D.sub.message.split('。')[0]}。<br />
                 あなたは守られている。
               </Body>
             </div>
 
-            <div className="space-y-1">
-              <p className="text-washi/15 text-[10px] font-serif-jp">{S.userName} 様</p>
-              <p className="text-washi/10 text-[10px] font-serif-jp">{S.issuedDate} 発行</p>
-            </div>
+            <p className="text-washi/15 text-[10px] font-serif-jp">{D.issuedDate} 発行</p>
           </div>
           <GoldLine />
         </div>
@@ -598,7 +604,10 @@ export default function ReportPreviewPage() {
         {/* ── 購入CTA ── */}
         <div className="text-center space-y-5 py-10">
           <p className="text-washi/30 text-sm font-serif-jp">
-            これは <span className="text-washi/55">山田 花子</span> さんのサンプル鑑定書です
+            あなたの守護 :{' '}
+            <span className="text-washi/60">{D.main.name}</span>
+            <span className="text-washi/30 text-xs mx-2">×</span>
+            <span className="text-washi/60">{D.sub.name}</span>
           </p>
           <p className="text-washi/20 text-xs font-serif-jp leading-relaxed">
             あなたの守護存在に合わせた鑑定書は、下記よりお求めいただけます
