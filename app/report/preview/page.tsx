@@ -498,33 +498,67 @@ export default async function ReportPreviewPage({
         {/* ══════════════ p.11 2026年の運勢 ══════════════ */}
         <Page num={11} chapter="2026年の運勢">
           <SectionTitle>2026年の運勢</SectionTitle>
-          <div className="space-y-7">
-            <div className="border border-kin/20 bg-kin/5 p-6 space-y-2">
-              <p className="text-kin/60 text-xs tracking-widest font-serif-jp">2026年 総括</p>
-              <Body className="text-washi/65">
-                2026年はあなたにとって「転機の年」です。{D.main.name}のエネルギーが外向きに大きく広がり、{D.sub.name}が縁の糸を次々と紡いでいく年。自分から動くよりも、呼ばれる場所・紹介される人・偶然の再会を大切にしてください。
-              </Body>
-            </div>
-            <div className="space-y-4">
-              {[
-                { period: '1〜3月',  note: '内省と準備の時期。焦らず、来る波に備える。守護が内に力を蓄えています。' },
-                { period: '4〜6月',  note: '縁が動き始める。出会いと紹介を大切に。新しいプロジェクトの芽が出る。' },
-                { period: '7〜9月',  note: `最大の活動期。${D.main.name}のエネルギーがピーク。大きな決断・行動に適した時期。` },
-                { period: '10〜12月', note: `結実と感謝の時期。今年育てた縁が形になる。${D.sub.name}の守護が財と縁を引き寄せる。` },
-              ].map(({ period, note }) => (
-                <div key={period} className="flex gap-5 items-start">
-                  <p className="text-kin/50 text-xs font-serif-jp shrink-0 w-16 text-right mt-1">{period}</p>
+          {mainReport?.fortune2026 ? (
+            <div className="space-y-7">
+              <div className="border border-kin/20 bg-kin/5 p-6 space-y-2">
+                <p className="text-kin/60 text-xs tracking-widest font-serif-jp">2026年 全体運</p>
+                <Body className="text-washi/65">{mainReport.fortune2026.overall}</Body>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { label: '恋愛運', text: mainReport.fortune2026.love },
+                  { label: '仕事運', text: mainReport.fortune2026.work },
+                  { label: '金運',   text: mainReport.fortune2026.money },
+                ].map(({ label, text }) => (
+                  <div key={label} className="flex gap-5 items-start">
+                    <p className="text-kin/50 text-xs font-serif-jp shrink-0 w-20 text-right mt-1">{label}</p>
+                    <div className="w-px bg-kin/15 shrink-0 self-stretch" />
+                    <Body className="text-washi/55 flex-1">{text}</Body>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-kin/10 pt-5 space-y-3">
+                <div className="flex gap-5 items-start">
+                  <p className="text-kin/40 text-xs font-serif-jp shrink-0 w-20 text-right mt-1">転機の月</p>
                   <div className="w-px bg-kin/15 shrink-0 self-stretch" />
-                  <Body className="text-washi/55 flex-1">{note}</Body>
+                  <Body className="text-washi/60 flex-1">{mainReport.fortune2026.pivotMonths}</Body>
                 </div>
-              ))}
+                <div className="flex gap-5 items-start">
+                  <p className="text-kin/40 text-xs font-serif-jp shrink-0 w-20 text-right mt-1">年のテーマ</p>
+                  <div className="w-px bg-kin/15 shrink-0 self-stretch" />
+                  <Body className="text-washi/60 flex-1">{mainReport.fortune2026.theme}</Body>
+                </div>
+              </div>
             </div>
-            <div className="border-t border-kin/10 pt-5">
-              <Body className="text-washi/40">
-                2026年の守護のメッセージは「焦るな、しかし止まるな」。ゆっくりと確かに、あなたの人生は今、大きな転換点へと向かっています。
-              </Body>
+          ) : (
+            <div className="space-y-7">
+              <div className="border border-kin/20 bg-kin/5 p-6 space-y-2">
+                <p className="text-kin/60 text-xs tracking-widest font-serif-jp">2026年 総括</p>
+                <Body className="text-washi/65">
+                  2026年はあなたにとって「転機の年」です。{D.main.name}のエネルギーが外向きに大きく広がり、{D.sub.name}が縁の糸を次々と紡いでいく年。自分から動くよりも、呼ばれる場所・紹介される人・偶然の再会を大切にしてください。
+                </Body>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { period: '1〜3月',  note: '内省と準備の時期。焦らず、来る波に備える。守護が内に力を蓄えています。' },
+                  { period: '4〜6月',  note: '縁が動き始める。出会いと紹介を大切に。新しいプロジェクトの芽が出る。' },
+                  { period: '7〜9月',  note: `最大の活動期。${D.main.name}のエネルギーがピーク。大きな決断・行動に適した時期。` },
+                  { period: '10〜12月', note: `結実と感謝の時期。今年育てた縁が形になる。${D.sub.name}の守護が財と縁を引き寄せる。` },
+                ].map(({ period, note }) => (
+                  <div key={period} className="flex gap-5 items-start">
+                    <p className="text-kin/50 text-xs font-serif-jp shrink-0 w-16 text-right mt-1">{period}</p>
+                    <div className="w-px bg-kin/15 shrink-0 self-stretch" />
+                    <Body className="text-washi/55 flex-1">{note}</Body>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-kin/10 pt-5">
+                <Body className="text-washi/40">
+                  2026年の守護のメッセージは「焦るな、しかし止まるな」。ゆっくりと確かに、あなたの人生は今、大きな転換点へと向かっています。
+                </Body>
+              </div>
             </div>
-          </div>
+          )}
         </Page>
 
         {/* ══════════════ p.12 守護存在からの手紙 ══════════════ */}
