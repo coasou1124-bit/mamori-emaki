@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { calculateLifePathNumber } from '@/lib/numerology'
 import { getGuardianByLifePath, getSubGuardianByMonth, GUARDIANS } from '@/lib/guardians'
 import { TIER_COLORS } from '@/lib/tierColors'
+import { getReportContent } from '@/data/report'
 
 export const metadata: Metadata = {
   title: '鑑定書プレビュー | 護り絵巻',
@@ -97,6 +98,9 @@ export default async function ReportPreviewPage({
 
   const mainColor = TIER_COLORS[mainG.tier].hex
   const subColor = TIER_COLORS[subG.tier].hex
+
+  const mainReport = getReportContent(mainG.id)
+  const subReport = getReportContent(subG.id)
 
   const D = {
     birthdate: `${y}年${m}月${d}日`,
@@ -357,11 +361,11 @@ export default async function ReportPreviewPage({
           <div className="space-y-7">
             <div>
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp mb-4">本質の性格</p>
-              <Body>{D.main.personality}</Body>
+              <Body>{mainReport?.personality ?? D.main.personality}</Body>
             </div>
             <div className="border-t border-kin/10 pt-6">
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp mb-4">開花する才能</p>
-              <Body>{D.main.talent}</Body>
+              <Body>{mainReport?.talents ?? D.main.talent}</Body>
             </div>
             <div className="bg-kard/50 border border-kin/10 p-6 space-y-3">
               <p className="text-washi/25 text-xs tracking-widest font-serif-jp">{D.sub.name}の副守護が加わることで</p>
@@ -377,7 +381,7 @@ export default async function ReportPreviewPage({
           <SectionTitle>恋愛傾向</SectionTitle>
           <div className="space-y-7">
             <Body>
-              {D.main.name}に守護されたあなたの恋愛は「{D.main.attrs[0]}と{D.main.attrs[1]}」がキーワードです。表面的なつながりよりも、魂の深いところで共鳴できる相手を無意識に求めています。恋愛においても変化を恐れないため、新しい段階への移行は得意ですが、逆に現状維持を強く求めるパートナーとは長期的な摩擦が生じる場合があります。
+              {mainReport?.love ?? `${D.main.name}に守護されたあなたの恋愛は「${D.main.attrs[0]}と${D.main.attrs[1]}」がキーワードです。魂の深いところで共鳴できる相手を無意識に求めています。`}
             </Body>
             <Body>
               {D.sub.name}の副守護が加わることで、縁の引き寄せ力が高まります。気づけば自然と出会いが増える時期と、まったく縁が来ない時期のメリハリがはっきりしているのも特徴です。縁が来ている時期は積極的に、来ていない時期は内省の時間として過ごすのが守護のリズムに合います。
@@ -412,7 +416,7 @@ export default async function ReportPreviewPage({
           <SectionTitle>仕事運</SectionTitle>
           <div className="space-y-7">
             <Body>
-              {D.main.name}の守護を受けたあなたの仕事運は「{D.main.attrs[0]}の力を活かすとき」に最も輝きます。安定した組織の中で守備範囲を守るよりも、新しいプロジェクトの立ち上げや、未開拓の領域に挑戦するときにエネルギーが最大化します。
+              {mainReport?.work ?? `${D.main.name}の守護を受けたあなたの仕事運は「${D.main.attrs[0]}の力を活かすとき」に最も輝きます。安定した組織の中で守備範囲を守るよりも、新しいプロジェクトの立ち上げや、未開拓の領域に挑戦するときにエネルギーが最大化します。`}
             </Body>
             <div className="border-l-2 pl-5 py-2 space-y-2" style={{ borderColor: `${D.main.color}50` }}>
               <p className="text-xs tracking-widest font-serif-jp" style={{ color: `${D.main.color}80` }}>最も輝く仕事環境</p>
@@ -437,7 +441,7 @@ export default async function ReportPreviewPage({
           <SectionTitle>金運</SectionTitle>
           <div className="space-y-7">
             <Body>
-              {D.main.name}の守護と{D.sub.name}の守護が重なるこの組み合わせは、金運において特に「縁を通じた豊かさ」が強調されます。ひとりで稼ぐことよりも、誰かとの協力・パートナーシップ・紹介を通じた収入の流れが自然に広がる傾向があります。
+              {mainReport?.money ?? `${D.main.name}の守護と${D.sub.name}の守護が重なるこの組み合わせは、金運において特に「縁を通じた豊かさ」が強調されます。ひとりで稼ぐことよりも、誰かとの協力・パートナーシップ・紹介を通じた収入の流れが自然に広がる傾向があります。`}
             </Body>
             <Body>
               {D.sub.name}の守護はあなたに{D.sub.attrs[0]}と{D.sub.attrs[1]}の感覚をもたらします。金銭に対する直感が鋭く、「今はこの流れに乗るべき」という感覚が金運のシグナルになることがあります。その直感を信頼することが、守護を活かす鍵です。
@@ -475,12 +479,12 @@ export default async function ReportPreviewPage({
               {D.main.name}と{D.sub.name}の二重守護を持つあなたへの最大の開運アドバイスは「{D.main.attrs[0]}と{D.sub.attrs[0]}の流れに乗ること」です。この2体の守護存在は、あなたが自然な流れを選ぶとき、最もよく働きます。
             </Body>
             <div className="space-y-5">
-              {[
+              {(mainReport?.luckItems ?? [
                 { title: '場の選択',  body: `${D.main.name}のエネルギーが宿る場所を定期的に訪れると守護エネルギーが補充されます。節目節目に守護存在と縁のある場所を訪れることで、エネルギーの流れを整えましょう。` },
                 { title: '色の活用',  body: `${D.main.name}の色「${D.main.attrs[0]}」、${D.sub.name}の色「${D.sub.attrs[0]}」を日常に取り入れましょう。アクセサリー・財布・手帳の色を意識するだけで、守護の感応が高まります。` },
                 { title: '時間の感覚', body: '直感が来たら48時間以内に動くことを習慣にしてください。守護のエネルギーは「タイミング」を重視します。後回しにすると流れが変わってしまうことがあります。' },
                 { title: '縁を育てる', body: `${D.sub.name}守護は縁の積み重ねで強化されます。大切な人への連絡・感謝・贈り物などの小さな行動が、長期的な金運と対人運を底上げします。` },
-              ].map(({ title, body }) => (
+              ]).map(({ title, body }) => (
                 <div key={title} className="flex gap-5 items-start">
                   <p className="text-kin/50 text-xs font-serif-jp tracking-widest shrink-0 w-16 text-right mt-1">{title}</p>
                   <div className="w-px bg-kin/15 shrink-0 self-stretch" />
@@ -536,7 +540,7 @@ export default async function ReportPreviewPage({
                 主守護 · {D.main.name}より
               </span>
               <div className="border-l-2 pl-6 py-2 space-y-4" style={{ borderColor: `${D.main.color}45` }}>
-                <Body className="text-washi/70">{D.main.message}</Body>
+                <Body className="text-washi/70 whitespace-pre-line">{mainReport?.message ?? D.main.message}</Body>
               </div>
             </div>
             {/* 副守護 */}
@@ -548,7 +552,7 @@ export default async function ReportPreviewPage({
                 副守護 · {D.sub.name}より
               </span>
               <div className="border-l-2 pl-6 py-2 space-y-4" style={{ borderColor: `${D.sub.color}45` }}>
-                <Body className="text-washi/65">{D.sub.message}</Body>
+                <Body className="text-washi/65 whitespace-pre-line">{subReport?.message ?? D.sub.message}</Body>
               </div>
             </div>
           </div>
@@ -590,8 +594,8 @@ export default async function ReportPreviewPage({
             <div className="border border-kin/20 px-10 py-7 max-w-sm space-y-4">
               <p className="text-kin/45 text-xs tracking-widest font-serif-jp">守護の言葉</p>
               <Body className="text-washi/50">
-                {D.main.message.split('。')[0]}。<br />
-                {D.sub.message.split('。')[0]}。<br />
+                {(mainReport?.message ?? D.main.message).split('\n')[0]}<br />
+                {(subReport?.message ?? D.sub.message).split('\n')[0]}<br />
                 あなたは守られている。
               </Body>
             </div>
