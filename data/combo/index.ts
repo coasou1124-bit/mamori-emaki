@@ -7,6 +7,8 @@ import { shirohebiCombos } from './shirohebi'
 import { kyubiCombos } from './kyubi'
 import { nekoMataCombos } from './nekomata'
 import { tenguCombos } from './tengu'
+import { yukionnaCombos } from './yukionna'
+import { zashikiwarashiCombos } from './zashikiwarashi'
 import type { ComboReportData } from './types'
 
 export type { ComboReportData, ComboStrength } from './types'
@@ -21,7 +23,9 @@ const COMBO_DATA: Record<string, Partial<Record<string, ComboReportData>>> = {
   kyubi: kyubiCombos,
   nekomata: nekoMataCombos,
   tengu: tenguCombos,
-  // 他の主守護は順次追加予定
+  yukionna: yukionnaCombos,
+  zashikiwarashi: zashikiwarashiCombos,
+  // mamoriOni は順次追加予定
 }
 
 /**
