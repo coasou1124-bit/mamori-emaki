@@ -4,6 +4,7 @@ import { calculateLifePathNumber } from '@/lib/numerology'
 import { getGuardianByLifePath, getSubGuardianByMonth, GUARDIANS } from '@/lib/guardians'
 import { TIER_COLORS } from '@/lib/tierColors'
 import { getReportContent } from '@/data/report'
+import { getComboContent } from '@/data/combo'
 
 export const metadata: Metadata = {
   title: '鑑定書プレビュー | 護り絵巻',
@@ -101,6 +102,7 @@ export default async function ReportPreviewPage({
 
   const mainReport = getReportContent(mainG.id)
   const subReport = getReportContent(subG.id)
+  const comboReport = getComboContent(mainG.id, subG.id)
 
   const D = {
     birthdate: `${y}年${m}月${d}日`,
@@ -324,34 +326,117 @@ export default async function ReportPreviewPage({
         {/* ══════════════ p.5 組み合わせ ══════════════ */}
         <Page num={5} chapter="二守護の組み合わせ">
           <SectionTitle>二守護の組み合わせ</SectionTitle>
-          <div className="space-y-8">
+          <div className="space-y-7">
+
+            {/* ① 組み合わせ名 ＋ ② キャッチコピー ＋ キーワード */}
             <div className="text-center space-y-3">
               <p className="text-kin/45 text-xs tracking-[0.4em] font-serif-jp">144通りの中のあなたの守護構成</p>
               <h3 className="text-washi/85 text-2xl font-bold font-serif-jp">{D.combo.title}</h3>
-              <p className="text-washi/35 text-sm font-serif-jp">{D.combo.subtitle}</p>
+              {comboReport ? (
+                <>
+                  <p className="text-washi/55 text-sm font-serif-jp leading-relaxed">{comboReport.catchCopy}</p>
+                  <div className="inline-flex items-center gap-2 px-5 py-1.5 border border-kin/25 bg-kin/5">
+                    <span className="text-kin/40 text-[10px]">✦</span>
+                    <p className="text-kin/65 text-xs tracking-widest font-serif-jp">{comboReport.keyword}</p>
+                    <span className="text-kin/40 text-[10px]">✦</span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-washi/35 text-sm font-serif-jp">{D.combo.subtitle}</p>
+              )}
             </div>
-            <div className="flex items-center justify-center gap-8">
+
+            {/* 主守護 × 副守護 */}
+            <div className="flex items-center justify-center gap-8 py-2">
               <div className="text-center space-y-2">
                 <span className="text-[10px] tracking-widest px-3 py-1 border font-serif-jp" style={{ color: D.main.color, borderColor: `${D.main.color}40` }}>
                   主守護
                 </span>
                 <p className="text-washi/75 text-2xl font-bold font-serif-jp">{D.main.name}</p>
+                <p className="text-washi/25 text-[10px] font-serif-jp tracking-wider">{D.main.tier}</p>
               </div>
-              <p className="text-kin/30 text-3xl font-bold">×</p>
+              <div className="text-center space-y-1">
+                <p className="text-kin/30 text-3xl font-bold">×</p>
+                <p className="text-washi/20 text-[9px] font-serif-jp tracking-widest">{comboReport?.subtitle ?? D.combo.subtitle}</p>
+              </div>
               <div className="text-center space-y-2">
-                <span className="text-[10px] tracking-widests px-3 py-1 border font-serif-jp" style={{ color: D.sub.color, borderColor: `${D.sub.color}40` }}>
+                <span className="text-[10px] tracking-widest px-3 py-1 border font-serif-jp" style={{ color: D.sub.color, borderColor: `${D.sub.color}40` }}>
                   副守護
                 </span>
                 <p className="text-washi/75 text-2xl font-bold font-serif-jp">{D.sub.name}</p>
+                <p className="text-washi/25 text-[10px] font-serif-jp tracking-wider">{D.sub.tier}</p>
               </div>
             </div>
-            <div className="border border-kin/20 bg-kin/5 p-7">
-              <Body>{D.combo.description}</Body>
-            </div>
-            <div className="space-y-3">
-              <p className="text-kin/40 text-xs tracking-widest font-serif-jp">この組み合わせの開運の鍵</p>
-              <Body>{D.combo.advice}</Body>
-            </div>
+
+            {comboReport ? (
+              <>
+                {/* ③ この組み合わせの意味 */}
+                <div>
+                  <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-3">この組み合わせの意味</p>
+                  <div className="border border-kin/20 bg-kin/5 p-6">
+                    <Body>{comboReport.meaning}</Body>
+                  </div>
+                </div>
+
+                {/* ④ この組み合わせの強み */}
+                <div>
+                  <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-4">この組み合わせの強み</p>
+                  <div className="space-y-4">
+                    {comboReport.strengths.map((s, i) => (
+                      <div key={i} className="flex gap-3 items-start">
+                        <span className="shrink-0 font-serif-jp mt-[3px]" style={{ color: D.main.color, fontSize: '11px' }}>◆</span>
+                        <div>
+                          <p className="text-washi/75 text-sm font-serif-jp font-bold mb-1">{s.title}</p>
+                          <Body>{s.body}</Body>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ⑤ 注意すべきこと */}
+                <div>
+                  <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-3">注意すべきこと</p>
+                  <div className="bg-kard/60 border border-washi/8 p-5 space-y-3">
+                    {comboReport.cautions.map((c, i) => (
+                      <div key={i} className="flex gap-2 items-start">
+                        <Dot color={`${D.sub.color}90`} />
+                        <Body className="text-washi/50">{c}</Body>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ⑥ 開運の鍵 */}
+                <div>
+                  <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-3">開運の鍵</p>
+                  <Body>{comboReport.advice}</Body>
+                </div>
+
+                {/* ⑦ 二守護からの共同メッセージ */}
+                <div className="border border-kin/20 bg-kard/80 p-6 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-px flex-1" style={{ background: `linear-gradient(90deg,transparent,${D.main.color}40)` }} />
+                    <p className="text-kin/45 text-[10px] tracking-widest font-serif-jp whitespace-nowrap">
+                      {D.main.name}と{D.sub.name}からのメッセージ
+                    </p>
+                    <div className="h-px flex-1" style={{ background: `linear-gradient(270deg,transparent,${D.sub.color}40)` }} />
+                  </div>
+                  <p className="text-washi/65 text-sm font-serif-jp leading-[2.4] whitespace-pre-line">{comboReport.jointMessage}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* フォールバック：コンボデータ未実装時の動的テキスト */}
+                <div className="border border-kin/20 bg-kin/5 p-7">
+                  <Body>{D.combo.description}</Body>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-kin/40 text-xs tracking-widest font-serif-jp">この組み合わせの開運の鍵</p>
+                  <Body>{D.combo.advice}</Body>
+                </div>
+              </>
+            )}
           </div>
         </Page>
 
@@ -361,11 +446,39 @@ export default async function ReportPreviewPage({
           <div className="space-y-7">
             <div>
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp mb-4">本質の性格</p>
-              <Body>{mainReport?.personality ?? D.main.personality}</Body>
+              {mainReport ? (
+                <div className="space-y-5">
+                  {([
+                    ['本質の性格', mainReport.personality.essence],
+                    ['最大の魅力', mainReport.personality.charm],
+                    ['隠れた才能', mainReport.personality.hiddenTalent],
+                    ['注意点', mainReport.personality.caution],
+                    ['伸びる方向', mainReport.personality.growth],
+                  ] as [string, string][]).map(([label, text]) => (
+                    <div key={label}>
+                      <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-1">{label}</p>
+                      <Body>{text}</Body>
+                    </div>
+                  ))}
+                </div>
+              ) : <Body>{D.main.personality}</Body>}
             </div>
             <div className="border-t border-kin/10 pt-6">
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp mb-4">開花する才能</p>
-              <Body>{mainReport?.talents ?? D.main.talent}</Body>
+              {mainReport ? (
+                <div className="space-y-4">
+                  {([
+                    ['才能の核心', mainReport.talents.core],
+                    ['才能を活かす鍵', mainReport.talents.activation],
+                    ['才能の表現', mainReport.talents.expression],
+                  ] as [string, string][]).map(([label, text]) => (
+                    <div key={label}>
+                      <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-1">{label}</p>
+                      <Body>{text}</Body>
+                    </div>
+                  ))}
+                </div>
+              ) : <Body>{D.main.talent}</Body>}
             </div>
             <div className="bg-kard/50 border border-kin/10 p-6 space-y-3">
               <p className="text-washi/25 text-xs tracking-widest font-serif-jp">{D.sub.name}の副守護が加わることで</p>
@@ -380,9 +493,24 @@ export default async function ReportPreviewPage({
         <Page num={7} chapter="恋愛傾向">
           <SectionTitle>恋愛傾向</SectionTitle>
           <div className="space-y-7">
-            <Body>
-              {mainReport?.love ?? `${D.main.name}に守護されたあなたの恋愛は「${D.main.attrs[0]}と${D.main.attrs[1]}」がキーワードです。魂の深いところで共鳴できる相手を無意識に求めています。`}
-            </Body>
+            {mainReport ? (
+              <div className="space-y-5">
+                {([
+                  ['あなたの愛し方', mainReport.love.style],
+                  ['惹かれる相手', mainReport.love.attracted],
+                  ['うまくいく関係', mainReport.love.compatible],
+                  ['不安になりやすい場面', mainReport.love.anxious],
+                  ['恋愛開運アドバイス', mainReport.love.advice],
+                ] as [string, string][]).map(([label, text]) => (
+                  <div key={label}>
+                    <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-1">{label}</p>
+                    <Body>{text}</Body>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Body>{`${D.main.name}に守護されたあなたの恋愛は「${D.main.attrs[0]}と${D.main.attrs[1]}」がキーワードです。魂の深いところで共鳴できる相手を無意識に求めています。`}</Body>
+            )}
             <Body>
               {D.sub.name}の副守護が加わることで、縁の引き寄せ力が高まります。気づけば自然と出会いが増える時期と、まったく縁が来ない時期のメリハリがはっきりしているのも特徴です。縁が来ている時期は積極的に、来ていない時期は内省の時間として過ごすのが守護のリズムに合います。
             </Body>
@@ -415,9 +543,24 @@ export default async function ReportPreviewPage({
         <Page num={8} chapter="仕事運">
           <SectionTitle>仕事運</SectionTitle>
           <div className="space-y-7">
-            <Body>
-              {mainReport?.work ?? `${D.main.name}の守護を受けたあなたの仕事運は「${D.main.attrs[0]}の力を活かすとき」に最も輝きます。安定した組織の中で守備範囲を守るよりも、新しいプロジェクトの立ち上げや、未開拓の領域に挑戦するときにエネルギーが最大化します。`}
-            </Body>
+            {mainReport ? (
+              <div className="space-y-5">
+                {([
+                  ['あなたの働き方', mainReport.work.style],
+                  ['才能の活かし方', mainReport.work.activation],
+                  ['苦手な環境', mainReport.work.weak],
+                  ['評価される場面', mainReport.work.shines],
+                  ['副業・発信との相性', mainReport.work.sideProject],
+                ] as [string, string][]).map(([label, text]) => (
+                  <div key={label}>
+                    <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-1">{label}</p>
+                    <Body>{text}</Body>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Body>{`${D.main.name}の守護を受けたあなたの仕事運は「${D.main.attrs[0]}の力を活かすとき」に最も輝きます。安定した組織の中で守備範囲を守るよりも、新しいプロジェクトの立ち上げや、未開拓の領域に挑戦するときにエネルギーが最大化します。`}</Body>
+            )}
             <div className="border-l-2 pl-5 py-2 space-y-2" style={{ borderColor: `${D.main.color}50` }}>
               <p className="text-xs tracking-widest font-serif-jp" style={{ color: `${D.main.color}80` }}>最も輝く仕事環境</p>
               <Body className="text-washi/55">
@@ -430,7 +573,7 @@ export default async function ReportPreviewPage({
             <div className="bg-kard/50 border border-kin/10 p-6">
               <p className="text-kin/40 text-xs tracking-widest font-serif-jp mb-3">2026年の仕事のポイント</p>
               <Body className="text-washi/60">
-                2026年前半は新しいつながりを育てる時期。後半に向けてそのつながりが具体的な成果として形になってくるでしょう。焦らず、しかし縁の機会は逃さないことが大切です。
+                {mainReport?.fortune2026?.work ?? `2026年は${D.main.name}のエネルギーが仕事面で大きく動く年。新しいつながりを通じて機会が広がり、後半に向けて具体的な成果として形になってくるでしょう。`}
               </Body>
             </div>
           </div>
@@ -440,9 +583,24 @@ export default async function ReportPreviewPage({
         <Page num={9} chapter="金運">
           <SectionTitle>金運</SectionTitle>
           <div className="space-y-7">
-            <Body>
-              {mainReport?.money ?? `${D.main.name}の守護と${D.sub.name}の守護が重なるこの組み合わせは、金運において特に「縁を通じた豊かさ」が強調されます。ひとりで稼ぐことよりも、誰かとの協力・パートナーシップ・紹介を通じた収入の流れが自然に広がる傾向があります。`}
-            </Body>
+            {mainReport ? (
+              <div className="space-y-5">
+                {([
+                  ['お金の入り方', mainReport.money.incoming],
+                  ['使い方の癖', mainReport.money.spending],
+                  ['貯め方のポイント', mainReport.money.saving],
+                  ['収入アップの鍵', mainReport.money.incomeUp],
+                  ['避けるべき行動', mainReport.money.avoid],
+                ] as [string, string][]).map(([label, text]) => (
+                  <div key={label}>
+                    <p className="text-kin/40 text-[10px] tracking-widest font-serif-jp mb-1">{label}</p>
+                    <Body>{text}</Body>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Body>{`${D.main.name}の守護と${D.sub.name}の守護が重なるこの組み合わせは、金運において特に「縁を通じた豊かさ」が強調されます。ひとりで稼ぐことよりも、誰かとの協力・パートナーシップ・紹介を通じた収入の流れが自然に広がる傾向があります。`}</Body>
+            )}
             <Body>
               {D.sub.name}の守護はあなたに{D.sub.attrs[0]}と{D.sub.attrs[1]}の感覚をもたらします。金銭に対する直感が鋭く、「今はこの流れに乗るべき」という感覚が金運のシグナルになることがあります。その直感を信頼することが、守護を活かす鍵です。
             </Body>
