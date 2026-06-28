@@ -2,6 +2,7 @@ import { ryujinCombos } from './ryujin'
 import { hououCombos } from './houou'
 import { kirinCombos } from './kirin'
 import { inarikitsuneCombos } from './inarikitsune'
+import { yatagarasuCombos } from './yatagarasu'
 import { tenguCombos } from './tengu'
 import type { ComboReportData } from './types'
 
@@ -12,6 +13,7 @@ const COMBO_DATA: Record<string, Partial<Record<string, ComboReportData>>> = {
   houou: hououCombos,
   kirin: kirinCombos,
   inarikitsune: inarikitsuneCombos,
+  yatagarasu: yatagarasuCombos,
   tengu: tenguCombos,
   // 他の主守護は順次追加予定
 }
