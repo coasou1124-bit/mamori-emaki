@@ -1,5 +1,6 @@
 import { ryujinCombos } from './ryujin'
 import { hououCombos } from './houou'
+import { kirinCombos } from './kirin'
 import { tenguCombos } from './tengu'
 import type { ComboReportData } from './types'
 
@@ -8,6 +9,7 @@ export type { ComboReportData, ComboStrength } from './types'
 const COMBO_DATA: Record<string, Partial<Record<string, ComboReportData>>> = {
   ryujin: ryujinCombos,
   houou: hououCombos,
+  kirin: kirinCombos,
   tengu: tenguCombos,
   // 他の主守護は順次追加予定
 }
