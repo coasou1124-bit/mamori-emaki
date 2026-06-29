@@ -94,3 +94,51 @@
 .delay-600 {
   animation-delay: 0.6s;
 }
+
+/* ── PDF / 印刷対応 ──────────────────────────────── */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* shimmer アニメーション → 静的ゴールドグラデーションに固定 */
+  .shimmer-text {
+    background: linear-gradient(90deg, #c9a047 0%, #e0c878 50%, #c9a047 100%) !important;
+    background-size: 100% auto !important;
+    animation: none !important;
+    background-position: 0% center !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+  }
+
+  /* 各ページを A4（297mm）に固定し、ページブレーク制御 */
+  .print-page {
+    height: 297mm !important;
+    break-after: page !important;
+    page-break-after: always !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  /* ページ本文エリアをフレキシブルに伸ばす */
+  .print-page-content {
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* 最終ページは強制改ページを解除して空白ページを防ぐ */
+  .print-page-last {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+}
