@@ -9,6 +9,7 @@ import { nekoMataCombos } from './nekomata'
 import { tenguCombos } from './tengu'
 import { yukionnaCombos } from './yukionna'
 import { zashikiwarashiCombos } from './zashikiwarashi'
+import { mamoriOniCombos } from './mamoriOni'
 import type { ComboReportData } from './types'
 
 export type { ComboReportData, ComboStrength } from './types'
@@ -25,7 +26,7 @@ const COMBO_DATA: Record<string, Partial<Record<string, ComboReportData>>> = {
   tengu: tenguCombos,
   yukionna: yukionnaCombos,
   zashikiwarashi: zashikiwarashiCombos,
-  // mamoriOni は順次追加予定
+  mamoriOni: mamoriOniCombos,
 }
 
 /**
