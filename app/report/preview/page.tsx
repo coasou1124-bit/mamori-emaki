@@ -336,7 +336,9 @@ export default async function ReportPreviewPage({
                 ))}
               </div>
             </div>
-            <GuardianArt id={mainG.id} name={D.main.name} color={D.main.color} />
+            <div className="py-5">
+              <GuardianArt id={mainG.id} name={D.main.name} color={D.main.color} />
+            </div>
             <div className="border-t border-kin/10 pt-7 space-y-5">
               <div>
                 <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${D.main.color}80` }}>守護の姿</p>
@@ -376,7 +378,9 @@ export default async function ReportPreviewPage({
                 ))}
               </div>
             </div>
-            <GuardianArt id={subG.id} name={D.sub.name} color={D.sub.color} />
+            <div className="py-5">
+              <GuardianArt id={subG.id} name={D.sub.name} color={D.sub.color} />
+            </div>
             <div className="border-t border-kin/10 pt-7 space-y-5">
               <div>
                 <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${D.sub.color}80` }}>守護の姿</p>
@@ -414,10 +418,10 @@ export default async function ReportPreviewPage({
             </div>
 
             {/* 主守護 × 副守護 */}
-            <div className="border border-kin/15 bg-kin/[0.03] flex items-center justify-center gap-12 py-6">
+            <div className="border border-kin/15 bg-kin/[0.03] flex items-center justify-center gap-12 py-8">
               <div className="text-center space-y-2">
                 <div
-                  className="relative mx-auto mb-2"
+                  className="relative mx-auto mb-4"
                   style={{
                     width: '112px',
                     height: '90px',
@@ -449,7 +453,7 @@ export default async function ReportPreviewPage({
               </div>
               <div className="text-center space-y-2">
                 <div
-                  className="relative mx-auto mb-2"
+                  className="relative mx-auto mb-4"
                   style={{
                     width: '112px',
                     height: '90px',
