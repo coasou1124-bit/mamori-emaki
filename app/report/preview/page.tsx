@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { calculateLifePathNumber } from '@/lib/numerology'
 import { getGuardianByLifePath, getSubGuardianByMonth, GUARDIANS } from '@/lib/guardians'
 import { TIER_COLORS } from '@/lib/tierColors'
@@ -16,6 +17,52 @@ const KANJI_MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月'
 
 // ── 共通パーツ ─────────────────────────────────────────────
 const gradientGold = 'linear-gradient(90deg,transparent 0%,#c9a04770 15%,#c9a047 45%,#c9a047 55%,#c9a04770 85%,transparent 100%)'
+
+function guardianImageSrc(id: string): string {
+  const map: Record<string, string> = {
+    inarikitsune: 'inari',
+    zashikiwarashi: 'zashiki',
+    mamoriOni: 'mamorioni',
+  }
+  return `/images/guardians/${map[id] ?? id}.jpg`
+}
+
+function GuardianArt({ id, name, color }: { id: string; name: string; color: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div
+        className="relative mx-auto"
+        style={{
+          width: '320px',
+          height: '220px',
+          boxShadow: `0 0 40px ${color}1c, 0 0 12px ${color}0e`,
+        }}
+      >
+        <Image
+          src={guardianImageSrc(id)}
+          alt={name}
+          fill
+          style={{ objectFit: 'cover', objectPosition: 'top center' }}
+          quality={100}
+          priority
+        />
+        <div
+          className="absolute inset-0 border pointer-events-none"
+          style={{ borderColor: `${color}35` }}
+        />
+        <div
+          className="absolute inset-[4px] border pointer-events-none"
+          style={{ borderColor: `${color}12` }}
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="h-px w-10" style={{ background: `linear-gradient(90deg,transparent,${color}40)` }} />
+        <span className="text-[10px] font-serif-jp tracking-[0.45em]" style={{ color: `${color}60` }}>{name}</span>
+        <div className="h-px w-10" style={{ background: `linear-gradient(270deg,transparent,${color}40)` }} />
+      </div>
+    </div>
+  )
+}
 
 function GoldLine() {
   return <div className="h-[2px] w-full" style={{ background: gradientGold }} />
@@ -289,6 +336,7 @@ export default async function ReportPreviewPage({
                 ))}
               </div>
             </div>
+            <GuardianArt id={mainG.id} name={D.main.name} color={D.main.color} />
             <div className="border-t border-kin/10 pt-7 space-y-5">
               <div>
                 <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${D.main.color}80` }}>守護の姿</p>
@@ -328,6 +376,7 @@ export default async function ReportPreviewPage({
                 ))}
               </div>
             </div>
+            <GuardianArt id={subG.id} name={D.sub.name} color={D.sub.color} />
             <div className="border-t border-kin/10 pt-7 space-y-5">
               <div>
                 <p className="text-xs tracking-widest font-serif-jp mb-3" style={{ color: `${D.sub.color}80` }}>守護の姿</p>
@@ -365,8 +414,28 @@ export default async function ReportPreviewPage({
             </div>
 
             {/* 主守護 × 副守護 */}
-            <div className="border border-kin/15 bg-kin/[0.03] flex items-center justify-center gap-12 py-7">
+            <div className="border border-kin/15 bg-kin/[0.03] flex items-center justify-center gap-12 py-6">
               <div className="text-center space-y-2">
+                <div
+                  className="relative mx-auto mb-2"
+                  style={{
+                    width: '112px',
+                    height: '90px',
+                    boxShadow: `0 0 20px ${D.main.color}1a`,
+                  }}
+                >
+                  <Image
+                    src={guardianImageSrc(mainG.id)}
+                    alt={D.main.name}
+                    fill
+                    style={{ objectFit: 'cover', objectPosition: 'top center' }}
+                    quality={100}
+                  />
+                  <div
+                    className="absolute inset-0 border pointer-events-none"
+                    style={{ borderColor: `${D.main.color}38` }}
+                  />
+                </div>
                 <span className="inline-block text-[11px] tracking-[0.35em] px-4 py-1 border font-serif-jp" style={{ color: D.main.color, borderColor: `${D.main.color}50`, backgroundColor: `${D.main.color}08` }}>
                   主守護
                 </span>
@@ -379,6 +448,26 @@ export default async function ReportPreviewPage({
                 <div className="h-px w-6" style={{ background: 'linear-gradient(90deg,#c9a04745,transparent)' }} />
               </div>
               <div className="text-center space-y-2">
+                <div
+                  className="relative mx-auto mb-2"
+                  style={{
+                    width: '112px',
+                    height: '90px',
+                    boxShadow: `0 0 20px ${D.sub.color}1a`,
+                  }}
+                >
+                  <Image
+                    src={guardianImageSrc(subG.id)}
+                    alt={D.sub.name}
+                    fill
+                    style={{ objectFit: 'cover', objectPosition: 'top center' }}
+                    quality={100}
+                  />
+                  <div
+                    className="absolute inset-0 border pointer-events-none"
+                    style={{ borderColor: `${D.sub.color}38` }}
+                  />
+                </div>
                 <span className="inline-block text-[11px] tracking-[0.35em] px-4 py-1 border font-serif-jp" style={{ color: D.sub.color, borderColor: `${D.sub.color}50`, backgroundColor: `${D.sub.color}08` }}>
                   副守護
                 </span>
